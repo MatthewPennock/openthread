@@ -92,7 +92,8 @@ otError DatasetManager::HandleSet(Coap::Message &aMessage, const Ip6::MessageInf
     channel.SetLength(0);
     pendingTimestamp.SetLength(0);
 
-    VerifyOrExit(Get<Mle::MleRouter>().IsLeader(), OT_NOOP);
+    VerifyOrExit(Get<Mle::MleRouter>().IsLeader(), 
+        otLogInfoMeshCoP("not handling MGMT_ACTIVE_SEQ.req: device is not leader"));
 
     // verify that TLV data size is less than maximum TLV value size
     while (offset < aMessage.GetLength())
@@ -123,7 +124,9 @@ otError DatasetManager::HandleSet(Coap::Message &aMessage, const Ip6::MessageInf
     timestamp = (type == Tlv::kActiveTimestamp) ? static_cast<Timestamp *>(&activeTimestamp)
                                                 : static_cast<Timestamp *>(&pendingTimestamp);
 
-    VerifyOrExit(mLocal.Compare(timestamp) > 0, OT_NOOP);
+    VerifyOrExit(mLocal.Compare(timestamp) > 0, 
+        otLogInfoMeshCoP("not handling MGMT_ACTIVE_SEQ.req: local timestamp (%ul) > peer timestamp (%ul)",
+        mLocal.GetTimestampSeconds(), timestamp->GetSeconds()));
 
     // check channel
     if (Tlv::GetTlv(aMessage, Tlv::kChannel, sizeof(channel), channel) == OT_ERROR_NONE)
@@ -264,6 +267,15 @@ exit:
     if (Get<Mle::MleRouter>().IsLeader())
     {
         SendSetResponse(aMessage, aMessageInfo, state);
+
+        const char * stateTlv = (state == StateTlv::kReject) ? "reject" : "accept"; 
+        otLogInfoMeshCoP("queued MGMT_ACTIVE_SET.rsp: %s", stateTlv);
+
+
+        if (state == StateTlv::kReject)
+        {
+            Get<NetworkData::Leader>().IncrementVersionAndStableVersion();
+        }
     }
 
     return (state == StateTlv::kAccept) ? OT_ERROR_NONE : OT_ERROR_DROP;
@@ -478,6 +490,12 @@ void ActiveDataset::HandleSet(void *aContext, otMessage *aMessage, const otMessa
 void ActiveDataset::HandleSet(Coap::Message &aMessage, const Ip6::MessageInfo &aMessageInfo)
 {
     SuccessOrExit(DatasetManager::HandleSet(aMessage, aMessageInfo));
+
+    if (mResetOnHandleSetPrimed)
+    {
+        Get<Instance>().Reset();
+    }
+
     IgnoreError(ApplyConfiguration());
 
 exit:

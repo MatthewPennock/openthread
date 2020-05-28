@@ -160,6 +160,11 @@ public:
      */
     int Compare(const Timestamp *aCompare);
 
+    uint64_t GetTimestampSeconds(void)
+    {
+        return mTimestamp.GetSeconds();
+    }
+
 private:
     bool IsActive(void) const { return (mType == Dataset::kActive); }
     void SetTimestamp(const Dataset &aDataset);

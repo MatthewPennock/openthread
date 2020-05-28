@@ -394,6 +394,12 @@ public:
      */
     otError Save(const otOperationalDataset &aDataset) { return DatasetManager::Save(aDataset); }
 
+    void PrimeForReset(void)
+    {
+        // prepare for a bumpy ride
+        mResetOnHandleSetPrimed = true;
+    }
+
 #if OPENTHREAD_FTD
 
     /**
@@ -428,6 +434,7 @@ public:
      *
      */
     otError GenerateLocal(void);
+
 #endif
 
 private:
@@ -447,6 +454,8 @@ private:
 #if OPENTHREAD_FTD
     Coap::Resource mResourceSet;
 #endif
+
+    bool mResetOnHandleSetPrimed;
 };
 
 class PendingDataset : public DatasetManager
