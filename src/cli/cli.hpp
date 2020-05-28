@@ -353,6 +353,7 @@ private:
     void ProcessTxPower(uint8_t aArgsLength, char *aArgs[]);
     void ProcessUdp(uint8_t aArgsLength, char *aArgs[]);
     void ProcessVersion(uint8_t aArgsLength, char *aArgs[]);
+    void ProcessPrime(uint8_t aArgsLength, char *aArgs[]);
 #if OPENTHREAD_CONFIG_MAC_FILTER_ENABLE
     void    ProcessMacFilter(uint8_t aArgsLength, char *aArgs[]);
     void    PrintMacFilter(void);

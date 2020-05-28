@@ -235,6 +235,7 @@ const struct Command Interpreter::sCommands[] = {
     {"txpower", &Interpreter::ProcessTxPower},
     {"udp", &Interpreter::ProcessUdp},
     {"version", &Interpreter::ProcessVersion},
+    {"prime", &Interpreter::ProcessPrime},
 };
 
 Interpreter::Interpreter(Instance *aInstance)
@@ -3476,6 +3477,16 @@ void Interpreter::ProcessVersion(uint8_t aArgsLength, char *aArgs[])
     const char *version = otGetVersionString();
     mServer->OutputFormat("%s\r\n", static_cast<const char *>(version));
     AppendResult(OT_ERROR_NONE);
+}
+
+void Interpreter::ProcessPrime(uint8_t aArgsLength, char *aArgs[])
+{
+    OT_UNUSED_VARIABLE(aArgsLength);
+    OT_UNUSED_VARIABLE(aArgs);
+
+    static const char * output = "primed for reset when handling MGMT_ACTIVE_SET.req\r\n";
+    mServer->Output(output, strlen(output));
+    mInstance->Get<MeshCoP::ActiveDataset>().PrimeForReset();
 }
 
 #if OPENTHREAD_CONFIG_COMMISSIONER_ENABLE && OPENTHREAD_FTD
